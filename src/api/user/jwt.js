@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 exports.jwtSign = (payload) => {
   return new Promise((resolve, reject) => {
     jwt.sign(
-      { foo: "bar" },
+      payload,
       process.env.JWT_KEY,
       { expiresIn: "1m" },
       function (err, token) {
