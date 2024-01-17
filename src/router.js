@@ -28,5 +28,5 @@ router.post("/api/feed", verify, apiFeedCOntroller.store);
 router.get("/api/feed/:id", verify, apiFeedCOntroller.show);
 router.post("/api/feed/:id", verify, apiFeedCOntroller.update);
 router.post("/api/feed/:id/delete", verify, apiFeedCOntroller.destroy);
-
+console.log("123");
 module.exports = router;
