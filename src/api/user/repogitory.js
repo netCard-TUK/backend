@@ -17,3 +17,9 @@ exports.find = async (email) => {
   ]);
   return result.length < 0 ? null : result[0];
 };
+
+exports.show_user = async (id) => {
+  const query = `SELECT * FROM user WHERE id =?`;
+  let result = await pool(query, [id]);
+  return result.length < 0 ? null : result[0];
+};
