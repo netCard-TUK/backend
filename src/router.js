@@ -33,13 +33,14 @@ router.post("/api/feed/:id/delete", verify, apiFeedCOntroller.destroy);
 
 //명함 관련 api
 router.post(
-  "/api/cards",
+  "/api/cards/register",
   upload.fields([{ name: "file", maxCount: 1 }]),
   cardsController.register
 );
 router.get("/api/cards/:cardId", cardsController.inquiry);
 router.get("/api/cards_all", cardsController.inquiry_all);
+router.get("/api/cards/search/:cardId", cardsController.inquiry_other);
 router.post("/api/cards/update/:cardId", cardsController.update);
 router.post("/api/cards/delete/:cardId", cardsController.delete);
-
+router.get("/api/cards/:cardId", cardsController.inquiry);
 module.exports = router;

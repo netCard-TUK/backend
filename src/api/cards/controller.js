@@ -37,8 +37,13 @@ exports.register = async (req, res) => {
 exports.inquiry = async (req, res) => {
   const cardId = req.params.cardId;
 
+  //user_id 가져오기
+  const { authorization } = req.headers;
+  const [tokenType, tokenValue] = authorization.split(" ");
+  const { id } = jwt.verify(tokenValue, process.env.JWT_KEY);
+
   //내 명함 정보 가져오기
-  const item = await repository.show(cardId);
+  const item = await repository.show({ cardId, userId: id });
   if (item == null) {
     return res.send({ result: "fail" });
   }
@@ -66,9 +71,46 @@ exports.inquiry = async (req, res) => {
 };
 
 exports.inquiry_all = async (req, res) => {
-  const item_all = await repository.show_all();
+  //user_id 값 가져오기
+  const { authorization } = req.headers;
+  const [tokenType, tokenValue] = authorization.split(" ");
+  const { id } = jwt.verify(tokenValue, process.env.JWT_KEY);
+
+  const item_all = await repository.show_all(id);
 
   res.send(item_all);
+};
+
+//다른 유저 명함 정보 조회
+exports.inquiry_other = async (req, res) => {
+  const cardId = req.params.cardId;
+
+  //다른 유저 명함 정보 가져오기
+  const item = await repository.show_other(cardId);
+  if (item == null) {
+    return res.send({ result: "fail" });
+  }
+  //유저 정보 가져오기
+  const user_info = await repogitory_user.show_user(item.user_id);
+  if (user_info == null) {
+    return res.send({ result: "fail" });
+  }
+
+  //base64로 인코딩 - 코드가 너무 길어짐
+  //const photoBase64 = fs.readFileSync(item.photo, { encoding: "base64" });
+
+  const response = {
+    position: item.position,
+    organization: item.organization,
+    address: item.address,
+    photo: item.photo,
+    tell: item.tell,
+    email: item.email,
+    user_name: user_info.name,
+    phone: user_info.phone,
+  };
+
+  res.send(response);
 };
 
 //내 명함 정보 업데이트
