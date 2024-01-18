@@ -29,6 +29,14 @@ exports.show = async (id) => {
   return result.length < 0 ? null : result[0];
 };
 
+//내 명함 전체 조회
+exports.show_all = async () => {
+  const query = `
+    SELECT cards.*, user.phone, user.email, user.name FROM cards JOIN user ON cards.user_id = user.id;`;
+  const result = await pool(query);
+  return result.length < 0 ? null : result;
+};
+
 //내 명함 업데이트 쿼리
 exports.update = async (
   id,

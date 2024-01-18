@@ -59,8 +59,16 @@ exports.inquiry = async (req, res) => {
     tell: item.tell,
     email: item.email,
     user_name: user_info.name,
+    phone: user_info.phone,
   };
+
   res.send(response);
+};
+
+exports.inquiry_all = async (req, res) => {
+  const item_all = await repository.show_all();
+
+  res.send(item_all);
 };
 
 //내 명함 정보 업데이트
