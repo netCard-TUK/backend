@@ -9,7 +9,7 @@ exports.register = async (req, res) => {
   const file = req.files;
 
   // 사진 경로 받기
-  const photo = file["file"][0].path;
+  const photo = "http://localhost:8000/" + file["file"][0].path;
 
   // jwt 토큰 값 받고 id 값만 분리하기 - db에 user_id에 저장하기 위함
   const { authorization } = req.headers;
@@ -53,9 +53,6 @@ exports.inquiry = async (req, res) => {
     return res.send({ result: "fail" });
   }
 
-  //base64로 인코딩 - 코드가 너무 길어짐
-  //const photoBase64 = fs.readFileSync(item.photo, { encoding: "base64" });
-
   const response = {
     position: item.position,
     organization: item.organization,
@@ -95,9 +92,6 @@ exports.inquiry_other = async (req, res) => {
   if (user_info == null) {
     return res.send({ result: "fail" });
   }
-
-  //base64로 인코딩 - 코드가 너무 길어짐
-  //const photoBase64 = fs.readFileSync(item.photo, { encoding: "base64" });
 
   const response = {
     position: item.position,

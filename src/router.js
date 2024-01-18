@@ -6,7 +6,7 @@ const verify = require("./middleware/jwtVerify");
 const headers = require("./middleware/header");
 
 const multer = require("multer");
-const upload = multer({ dest: "storage/" });
+const upload = multer({ dest: "public/" });
 
 const webController = require("./web/controller");
 const apiUserController = require("./api/user/controller");
@@ -14,6 +14,7 @@ const apiFeedCOntroller = require("./api/feed/controller");
 const fileController = require("./api/file/controller");
 const cardsController = require("./api/cards/controller");
 
+router.use("/", express.static("./public"));
 router.use(headers);
 router.use(logging);
 router.post("/api/file", upload.single("file"), fileController.upload);
