@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+/public
 /storage
 .env
 /package-lock.json
