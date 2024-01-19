@@ -28,7 +28,7 @@ exports.isExistByEmail = async (email) => {
 
 exports.delete = async (userId) => {
     return await pool(`UPDATE user
-                       SET isActivated = false
+                       SET isActivate = false
                        WHERE id = ?`, [userId]);
 }
 
