@@ -10,7 +10,7 @@ exports.create = async (
   tell,
   email
 ) => {
-  const query = `INSERT INTO cards (user_id, position, organization, address, photo, tell, email) VALUES (?,?,?,?,?,?,?);`;
+  const query = `INSERT INTO cards (user_Id, position, organization, address, photo, tell, email) VALUES (?,?,?,?,?,?,?);`;
   return await pool(query, [
     user_id,
     position,
@@ -23,9 +23,11 @@ exports.create = async (
 };
 
 //내 명함 조회 쿼리
-exports.show = async ({ cardId, userId }) => {
+exports.show = async ({ card_id, user_id }) => {
+  console.log(card_id, user_id);
   const query = `SELECT * FROM cards WHERE card_id=? AND user_id =?`;
-  let result = await pool(query, [cardId, userId]);
+  let result = await pool(query, [card_id, user_id]);
+
   return result.length < 0 ? null : result[0];
 };
 
