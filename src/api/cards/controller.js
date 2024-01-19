@@ -53,7 +53,14 @@ exports.inquiry = async (req, res) => {
 
   checkUserInfo(res, user_id, id);
 
+  // 명함 정보 가져오기
   const item = await repository.show({ cardId, userId: id });
+  if (item === null) {
+    return res.send({
+      isSuccess: "false",
+      message: "조회된 값이 없습니다(cardId나 userId를 확인해주세요)",
+    });
+  }
   const response = {
     isSuccess: "true",
     position: item.position,
@@ -200,15 +207,6 @@ const checkUserInfo = async (res, userId, id) => {
     return res.send({
       isSuccess: "false",
       message: "타입이 일치하지 않습니다.(user_id 타입은 int형 입니다.)",
-    });
-  }
-
-  // 명함 정보 가져오기
-  const item = await repository.show({ cardId, userId: id });
-  if (item === null) {
-    return res.send({
-      isSuccess: "false",
-      message: "조회된 값이 없습니다(cardId나 userId를 확인해주세요)",
     });
   }
 
