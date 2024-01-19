@@ -8,13 +8,13 @@ exports.register = async (req, res) => {
 
   if (typeof password !== "string" || !password.trim()) {
     return res.status(400).send({
-      result: "fail",
+      isSuccess: "false",
       message: "비밀번호는 필수 입력 항목입니다.",
     });
   }
   if (count > 0) {
     return res.send({
-      result: "fail",
+      isSuccess: "false",
       message: "중복된 이메일이 존재합니다.",
     });
   }
@@ -35,6 +35,9 @@ exports.register = async (req, res) => {
     const data = await jwt.jwtSign({ id: insertId, name });
     res.send({ access_token: data });
   } else {
-    res.send({ result: "fail" });
+    res.send({
+      isSuccess: "false",
+      message: "항목 중 빈 칸이 존재하거나 올바른 값이 아닙니다.",
+    });
   }
 };
