@@ -18,31 +18,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const webController = require("./web/controller");
-const apiUserController = require("./api/user/controller");
-const apiFeedCOntroller = require("./api/feed/controller");
-const fileController = require("./api/file/controller");
+const userController = require("./api/user/controller");
 const cardsController = require("./api/cards/controller");
-
 const walletController = require("./api/wallet/controller");
 
+
+// static file
 router.use("/", express.static("./public"));
+// CORS setting
 router.use(headers);
+// logging
 router.use(logging);
-router.post("/api/file", upload.single("file"), fileController.upload);
-router.get("/api/file/:id", fileController.download);
 
-router.get("/", webController.home);
-router.get("/page/:page", webController.page);
-router.get("/sitemap", webController.sitemap);
-
-router.post("/api/user/register", apiUserController.register);
-
-router.get("/api/feed", verify, apiFeedCOntroller.index);
-router.post("/api/feed", verify, apiFeedCOntroller.store);
-router.get("/api/feed/:id", verify, apiFeedCOntroller.show);
-router.post("/api/feed/:id", verify, apiFeedCOntroller.update);
-router.post("/api/feed/:id/delete", verify, apiFeedCOntroller.destroy);
+// 유저 관련 api
+// 회원가입
+router.post("/api/users/register", userController.register);
+// 로그인
+router.post("/api/users/login", userController.login);
 
 //명함 관련 api
 router.post(

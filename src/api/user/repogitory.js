@@ -1,8 +1,8 @@
 const { pool } = require("../../data");
 
-exports.register = async (email, password, name) => {
-  const query = `INSERT INTO user (email, password, name) VALUES (?,?,?)`;
-  return await pool(query, [email, password, name]);
+exports.register = async (email, password, name, phone) => {
+  const query = `INSERT INTO user (email, password, name, phone) VALUES (?,?,?,?)`;
+  return await pool(query, [email, password, name, phone]);
 };
 
 exports.login = async (email, password) => {
@@ -11,11 +11,11 @@ exports.login = async (email, password) => {
   return result.length < 0 ? null : result[0];
 };
 
-exports.find = async (email) => {
+exports.isExistByEmail = async (email) => {
   let result = await pool(`SELECT count(*) count FROM user WHERE email = ?`, [
     email,
   ]);
-  return result.length < 0 ? null : result[0];
+  return result.length >= 0;
 };
 
 exports.show_user = async (id) => {
