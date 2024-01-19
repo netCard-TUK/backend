@@ -2,7 +2,7 @@ const { pool } = require("../../data");
 
 //내 명함 등록 쿼리
 exports.create = async (
-  userId,
+  user_id,
   position,
   organization,
   address,
@@ -10,9 +10,9 @@ exports.create = async (
   tell,
   email
 ) => {
-  const query = `INSERT INTO cards (userId, position, organization, address, photo, tell, email) VALUES (?,?,?,?,?,?,?);`;
+  const query = `INSERT INTO cards (user_id, position, organization, address, photo, tell, email) VALUES (?,?,?,?,?,?,?);`;
   return await pool(query, [
-    userId,
+    user_id,
     position,
     organization,
     address,
@@ -23,24 +23,24 @@ exports.create = async (
 };
 
 //내 명함 조회 쿼리
-exports.show = async ({ cardId, userId }) => {
-  console.log(cardId, userId);
-  const query = `SELECT * FROM cards WHERE cardId=? AND userId =?`;
-  let result = await pool(query, [cardId, userId]);
+exports.show = async ({ card_id, user_id }) => {
+  console.log(card_id, user_id);
+  const query = `SELECT * FROM cards WHERE card_id=? AND user_id =?`;
+  let result = await pool(query, [card_id, user_id]);
   return result.length < 0 ? null : result[0];
 };
 
 //내 명함 전체 조회
 exports.show_all = async (id) => {
   const query = `
-    SELECT cards.*, user.phone, user.email, user.name FROM cards JOIN user ON cards.userId = user.id WHERE userId=?`;
+    SELECT cards.*, user.phone, user.email, user.name FROM cards JOIN user ON cards.user_id = user.id WHERE user_id=?`;
   const result = await pool(query, [id]);
   return result.length < 0 ? null : result;
 };
 
 //다른 명함 조회 쿼리
 exports.show_other = async (id) => {
-  const query = `SELECT * FROM cards WHERE cardId =?`;
+  const query = `SELECT * FROM cards WHERE card_id =?`;
   let result = await pool(query, [id]);
   return result.length < 0 ? null : result[0];
 };
@@ -58,7 +58,7 @@ exports.update = async (
   const query = `
     UPDATE cards 
     SET position=?, organization=?, address=?, photo=?, tell=?, email=?
-    WHERE cardId = ?;
+    WHERE card_id = ?;
   `;
 
   return await pool(query, [
@@ -76,7 +76,7 @@ exports.update = async (
 exports.delete = async (id) => {
   const query = `
     DELETE FROM cards
-    WHERE cardId = ?;
+    WHERE card_id = ?;
   `;
 
   return await pool(query, [id]);
