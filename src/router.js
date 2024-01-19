@@ -6,7 +6,17 @@ const verify = require("./middleware/jwtVerify");
 const headers = require("./middleware/header");
 
 const multer = require("multer");
-const upload = multer({ dest: "public/" });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ".png");
+  },
+});
+
+const upload = multer({ storage: storage });
 
 const webController = require("./web/controller");
 const apiUserController = require("./api/user/controller");
@@ -43,5 +53,4 @@ router.get("/api/cards_all", cardsController.inquiry_all);
 router.get("/api/cards/search/:cardId", cardsController.inquiry_other);
 router.post("/api/cards/update/:cardId", cardsController.update);
 router.post("/api/cards/delete/:cardId", cardsController.delete);
-router.get("/api/cards/:cardId", cardsController.inquiry);
 module.exports = router;
