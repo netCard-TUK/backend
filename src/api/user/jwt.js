@@ -5,7 +5,7 @@ exports.jwtSign = (payload) => {
     jwt.sign(
       payload,
       process.env.JWT_KEY,
-      { expiresIn: "1m" },
+      { expiresIn: "2h" },
       function (err, token) {
         if (err) {
           reject(err);

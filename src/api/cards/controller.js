@@ -9,7 +9,7 @@ exports.register = async (req, res) => {
   const file = req.files;
 
   // 사진 경로 받기
-  const photo = file["file"][0].path;
+  const photo = "http://localhost:8000/" + file["file"][0].path;
 
   // jwt 토큰 값 받고 id 값만 분리하기 - db에 user_id에 저장하기 위함
   const { authorization } = req.headers;
@@ -37,8 +37,13 @@ exports.register = async (req, res) => {
 exports.inquiry = async (req, res) => {
   const cardId = req.params.cardId;
 
+  //user_id 가져오기
+  const { authorization } = req.headers;
+  const [tokenType, tokenValue] = authorization.split(" ");
+  const { id } = jwt.verify(tokenValue, process.env.JWT_KEY);
+
   //내 명함 정보 가져오기
-  const item = await repository.show(cardId);
+  const item = await repository.show({ cardId, userId: id });
   if (item == null) {
     return res.send({ result: "fail" });
   }
@@ -48,8 +53,45 @@ exports.inquiry = async (req, res) => {
     return res.send({ result: "fail" });
   }
 
-  //base64로 인코딩 - 코드가 너무 길어짐
-  //const photoBase64 = fs.readFileSync(item.photo, { encoding: "base64" });
+  const response = {
+    position: item.position,
+    organization: item.organization,
+    address: item.address,
+    photo: item.photo,
+    tell: item.tell,
+    email: item.email,
+    user_name: user_info.name,
+    phone: user_info.phone,
+  };
+
+  res.send(response);
+};
+
+exports.inquiry_all = async (req, res) => {
+  //user_id 값 가져오기
+  const { authorization } = req.headers;
+  const [tokenType, tokenValue] = authorization.split(" ");
+  const { id } = jwt.verify(tokenValue, process.env.JWT_KEY);
+
+  const item_all = await repository.show_all(id);
+
+  res.send(item_all);
+};
+
+//다른 유저 명함 정보 조회
+exports.inquiry_other = async (req, res) => {
+  const cardId = req.params.cardId;
+
+  //다른 유저 명함 정보 가져오기
+  const item = await repository.show_other(cardId);
+  if (item == null) {
+    return res.send({ result: "fail" });
+  }
+  //유저 정보 가져오기
+  const user_info = await repogitory_user.show_user(item.user_id);
+  if (user_info == null) {
+    return res.send({ result: "fail" });
+  }
 
   const response = {
     position: item.position,
@@ -59,7 +101,9 @@ exports.inquiry = async (req, res) => {
     tell: item.tell,
     email: item.email,
     user_name: user_info.name,
+    phone: user_info.phone,
   };
+
   res.send(response);
 };
 
