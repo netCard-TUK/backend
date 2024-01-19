@@ -105,3 +105,47 @@ exports.login = async (req, res) => {
         access_token: token,
     });
 }
+
+exports.delete = async (req, res) => {
+    let {userId} = req.body
+    const tokenUserId = req.user.id;
+
+
+    // 숫자 최소 1자리
+    const regExp = /^[0-9]+$/;
+
+    if (!regExp.test(userId)) {
+        return res.send({
+            isSuccess: false,
+            message: "userId가 잘못되었습니다.",
+        });
+    }
+
+    userId = Number(userId);
+
+    // 토큰 유저 아이디와 요청 유저 아이디가 다를 경우
+    if (tokenUserId !== userId) {
+        return res.send({
+            isSuccess: false,
+            message: "인증실패 : 토큰 유저 아이디와 요청 유저 아이디가 다릅니다.",
+        });
+    }
+
+    // 유저 아이디로 유저 찾기
+    const user = await userRepository.show_user(userId);
+    if (!user) {
+        return res.send({
+            isSuccess: false,
+            message: "존재하지 않는 유저입니다.",
+        });
+    }
+
+    let {affectedRows} = await userRepository.delete(userId);
+
+    if (affectedRows > 0) {
+        res.send({ isSuccess: true });
+    }
+    else {
+        res.send({ isSuccess: false, message: "삭제 실패" });
+    }
+}

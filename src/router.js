@@ -35,6 +35,8 @@ router.use(logging);
 router.post("/api/users/register", userController.register);
 // 로그인
 router.post("/api/users/login", userController.login);
+// 회원탈퇴
+router.post("/api/users/delete",verify, userController.delete);
 
 //명함 관련 api
 router.post(
