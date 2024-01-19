@@ -25,3 +25,5 @@ dist-ssr
 
 /storage
 .env
+/package-lock.json
+/grep
