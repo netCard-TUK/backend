@@ -24,6 +24,8 @@ const apiFeedCOntroller = require("./api/feed/controller");
 const fileController = require("./api/file/controller");
 const cardsController = require("./api/cards/controller");
 
+const walletController = require("./api/wallet/controller");
+
 router.use("/", express.static("./public"));
 router.use(headers);
 router.use(logging);
@@ -54,3 +56,11 @@ router.get("/api/cards/search/:cardId", cardsController.inquiry_other);
 router.post("/api/cards/update/:cardId", cardsController.update);
 router.post("/api/cards/delete/:cardId", cardsController.delete);
 module.exports = router;
+
+// 명함 지갑 관련 API
+
+// 명함 지갑에 명함 등록 및 삭제
+router.post("/api/wallets",verify, walletController.toggle);
+// 내 명함 지갑의 모든 명함 조회
+router.get("/api/wallets/users/:userId",verify, walletController.findAllByUserId);
+
