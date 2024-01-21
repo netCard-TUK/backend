@@ -4,32 +4,83 @@ const jwt = require("jsonwebtoken");
 
 //내 명함 정보 등록
 exports.register = async (req, res) => {
-  let { user_id, position, organization, address, tell, email } = req.body;
-  const file = req.files;
+  let { userId, position, organization, address, tell, email } = req.body;
 
-  if (!user_id || !position || !organization || !address || !tell || !email) {
+  //파일 예외 처리 파일 정보가 있을 경우만 인자로 받음
+  let photo = req.files && Object.keys(req.files).length > 0 ? req.files : null;
+  let time = new Date();
+  photo =
+    photo != null
+      ? "http://" +
+        req.get("host") +
+        "/" +
+        +time.getTime() +
+        photo["photo"][0].filename
+      : null;
+
+  // req 값이 있는지 검사
+  if (
+    !userId ||
+    !position ||
+    !organization ||
+    !address ||
+    !tell ||
+    !email ||
+    !photo
+  ) {
     return res.send({
       isSuccess: false,
       message: "항목 중 null 값이 존재합니다.",
     });
   }
 
-  let time = new Date();
-  const photo =
-    "http://" +
-    req.get("host") +
-    "/" +
-    file["file"][0].filename +
-    time.getTime();
+  userId = 23;
+  tell = Number(tell);
+  // userId와 tell 타입(int) 검사
+  if (typeof userId !== "number" || typeof tell !== "number") {
+    return res.send({
+      isSuccess: false,
+      message: "userId와 tell은 정수(int)여야 합니다.",
+    });
+  }
+
+  // position, organization, address, email 타입(string) 검사
+  if (
+    typeof position !== "string" ||
+    typeof organization !== "string" ||
+    typeof address !== "string" ||
+    typeof email !== "string"
+  ) {
+    return res.send({
+      isSuccess: false,
+      message:
+        "position, organization, address, email은 문자열(string)이어야 합니다.",
+    });
+  }
 
   // jwt 토큰 값 받고 id 값만 분리하기 - db에 user_id에 저장하기 위함
   const { access_token } = req.headers;
   //const [tokenType, tokenValue] = authorization.split(" ");
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  checkUserInfo(res, user_id, id);
+
+  if (userId !== id) {
+    return res.send({
+      isSuccess: false,
+      message: "올바른 토큰 값이 아닙니다.",
+    });
+  }
+
+  const user_info = await userRepository.show_user(userId);
+  if (user_info == null) {
+    return res.send({
+      isSuccess: false,
+      message: "조회된 유저정보가 없습니다.",
+    });
+  }
+
   //db에 저장 정상적으로 저장 시 ok / 실패 시 fail
   const { affectedRows, insertId } = await repository.create(
-    (user_id = id),
+    (userId = id),
     position,
     organization,
     address,
@@ -37,30 +88,36 @@ exports.register = async (req, res) => {
     tell,
     email
   );
+
   if (affectedRows > 0) {
     return res.send({ isSuccess: true, id: insertId });
   }
-
   return res.send({ isSuccess: false, message: "등록 실패" });
 };
 
-//내 명함 정보 조회
+//특정 명함 정보 조회
 exports.inquiry = async (req, res) => {
-  const card_id = req.params.cardId;
+  const cardId = Number(req.params.cardId);
 
-  //user_id 가져오기
-  const { access_token } = req.headers;
-  //const [tokenType, tokenValue] = authorization.split(" ");
-  const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  let { user_id } = req.body;
-  checkUserInfo(res, user_id, id);
+  if (cardId == null) {
+    return res.send({
+      isSuccess: false,
+      message: "card_id가 null 값입니다.",
+    });
+  }
 
+  if (typeof cardId !== "number") {
+    return res.send({
+      isSuccess: false,
+      message: "card_id는 정수(int)여야 합니다.",
+    });
+  }
   // 명함 정보 가져오기
-  const item = await repository.show({ card_id, user_id: id });
+  const item = await repository.show(cardId);
   if (item === null) {
     return res.send({
       isSuccess: false,
-      message: "조회된 값이 없습니다(card_id나 user_id를 확인해주세요)",
+      message: "조회된 값이 없습니다(cardId를 확인해주세요)",
     });
   }
   //유저 정보 가져오기
@@ -68,7 +125,7 @@ exports.inquiry = async (req, res) => {
   if (user_info == null) {
     return res.send({
       isSuccess: false,
-      message: "조회된 값이 없습니다(user_id를 확인해주세요)",
+      message: "조회된 유저 정보가 없습니다.",
     });
   }
 
@@ -84,17 +141,37 @@ exports.inquiry = async (req, res) => {
     phone: user_info.phone,
   };
 
-  res.send(response);
+  return res.send(response);
 };
 
 //내 명함 정보 전체 조회
 exports.inquiry_all = async (req, res) => {
   //user_id 값 가져오기
   const { access_token } = req.headers;
-  let { user_id } = req.body;
-  //const [tokenType, tokenValue] = access_token.split(" ");
+  const userId = Number(req.params.userId);
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  checkUserInfo(res, user_id, id);
+
+  if (userId !== id) {
+    return res.send({
+      isSuccess: false,
+      message: "올바른 토큰 값이 아닙니다.",
+    });
+  }
+
+  if (typeof userId !== "number") {
+    return res.send({
+      isSuccess: false,
+      message: "userId는 정수(int)여야 합니다.",
+    });
+  }
+
+  const user_info = await userRepository.show_user(userId);
+  if (user_info == null) {
+    return res.send({
+      isSuccess: false,
+      message: "조회된 유저정보가 없습니다.",
+    });
+  }
 
   const item_all = await repository.show_all(id);
 
@@ -104,59 +181,56 @@ exports.inquiry_all = async (req, res) => {
   });
 };
 
-//다른 유저 명함 정보 조회
-exports.inquiry_other = async (req, res) => {
-  const card_id = req.params.cardId;
+//내 명함 정보 업데이트
+exports.update = async (req, res) => {
+  const cardId = req.params.cardId;
 
-  //다른 유저 명함 정보 가져오기
-  const item = await repository.show_other(card_id);
-  if (item == null) {
-    res.send({
+  const { access_token } = req.headers;
+  const { id } = jwt.verify(access_token, process.env.JWT_KEY);
+  let { userId, position, organization, address, tell, email } = req.body;
+
+  //파일 예외 처리 파일 정보가 있을 경우만 인자로 받음
+  let photo = req.files && Object.keys(req.files).length > 0 ? req.files : null;
+  let time = new Date();
+  photo =
+    photo != null
+      ? "http://" +
+        req.get("host") +
+        "/" +
+        +time.getTime() +
+        photo["photo"][0].filename
+      : null;
+
+  if (userId !== id) {
+    return res.send({
       isSuccess: false,
-      message: "조회된 값이 없습니다(card_id를 확인해주세요)",
+      message: "올바른 토큰 값이 아닙니다.",
     });
   }
-  //유저 정보 가져오기
-  const user_info = await userRepository.show_user(item.user_id);
+  const user_info = await userRepository.show_user(userId);
   if (user_info == null) {
     return res.send({
       isSuccess: false,
-      message: "조회된 값이 없습니다(user_id를 확인해주세요)",
+      message: "조회된 유저 정보가 없습니다.",
     });
   }
 
-  const response = {
-    isSuccess: true,
-    position: item.position,
-    organization: item.organization,
-    address: item.address,
-    photo: item.photo,
-    tell: item.tell,
-    email: item.email,
-    user_name: user_info.name,
-    phone: user_info.phone,
-  };
-
-  res.send(response);
-};
-
-//내 명함 정보 업데이트
-exports.update = async (req, res) => {
-  const card_id = req.params.cardId;
-
-  const { access_token } = req.headers;
-  //const [tokenType, tokenValue] = access_token.split(" ");
-  const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  let { user_id, position, organization, address, photo, tell, email } =
-    req.body;
-
-  checkUserInfo(res, user_id, id);
   //명함 정보 가져오기
-  const item = await repository.show({ card_id, user_id });
+  const item = await repository.show(cardId);
+
+  //명함 정보 존재 여부 확인
   if (item == null) {
-    res.send({
+    return res.send({
       isSuccess: false,
-      message: "조회된 값이 없습니다(card_id 또는 user_id를 확인해주세요)",
+      message: "조회된 명함 정보가 없습니다",
+    });
+  }
+
+  // req 받은 userId와 명함에 저장된 userId의 일치 여부 확인
+  if (user_info.id !== item.user_id) {
+    return res.send({
+      isSuccess: false,
+      message: "명함을 등록한 유저정보와 일치하지 않습니다.",
     });
   }
 
@@ -170,8 +244,30 @@ exports.update = async (req, res) => {
   tell ? (tell = tell) : (tell = item.tell);
   email ? (email = email) : (email = item.email);
 
-  const { affectedRows, insertId } = await repository.update(
-    card_id,
+  // userId와 tell 타입(int) 검사
+  if (typeof userId !== "number" || typeof tell !== "number") {
+    return res.send({
+      isSuccess: false,
+      message: "userId와 tell은 정수(int)여야 합니다.",
+    });
+  }
+
+  // position, organization, address, email 타입(string) 검사
+  if (
+    typeof position !== "string" ||
+    typeof organization !== "string" ||
+    typeof address !== "string" ||
+    typeof email !== "string"
+  ) {
+    return res.send({
+      isSuccess: false,
+      message:
+        "position, organization, address, email은 문자열(string)이어야 합니다.",
+    });
+  }
+
+  const { affectedRows } = await repository.update(
+    cardId,
     position,
     organization,
     address,
@@ -181,53 +277,46 @@ exports.update = async (req, res) => {
   );
 
   if (affectedRows > 0) {
-    return res.send({ isSuccess: true, id: insertId });
+    return res.send({ isSuccess: true });
   }
   return res.send({ isSuccess: false, message: "저장 실패" });
 };
 
 //내 명함 목록 삭제
 exports.delete = async (req, res) => {
-  const card_id = req.params.cardId;
+  const cardId = Number(req.params.cardId);
   const { access_token } = req.headers;
-  //const [tokenType, tokenValue] = access_token.split(" ");
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  let { user_id } = req.body;
+  let { userId } = req.body;
+  userId = Number(userId);
 
-  checkUserInfo(res, user_id, id);
-
-  const { affectedRows, insertId } = await repository.delete(card_id);
-
-  if (affectedRows > 0) {
-    res.send({ isSuccess: true });
-  } else {
-    res.send({ isSuccess: false, message: "삭제 실패" });
-  }
-};
-
-const checkUserInfo = async (res, user_id, id) => {
-  // 유저 정보 확인하기
-  if (user_id != id) {
+  if (userId !== id) {
     return res.send({
       isSuccess: false,
       message: "올바른 토큰 값이 아닙니다.",
     });
   }
 
-  // user_id, id 타입 일치 확인
-  if (user_id !== id) {
+  if (typeof userId !== "number" || typeof cardId !== "number") {
     return res.send({
       isSuccess: false,
-      message: "타입이 일치하지 않습니다.(user_id 타입은 int형 입니다.)",
+      message: "userId와 cardId는 정수(int)여야 합니다.",
     });
   }
 
-  // 유저 정보 가져오기
-  const user_info = await userRepository.show_user(user_id);
-  if (user_info === null) {
+  const user_info = await userRepository.show_user(userId);
+  if (user_info == null) {
     return res.send({
       isSuccess: false,
-      message: `조회된 값이 없습니다`,
+      message: "조회된 유저 정보가 없습니다.",
     });
+  }
+
+  const { affectedRows } = await repository.delete(cardId);
+
+  if (affectedRows > 0) {
+    res.send({ isSuccess: true });
+  } else {
+    res.send({ isSuccess: false, message: "삭제 실패" });
   }
 };
