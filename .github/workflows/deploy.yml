@@ -37,6 +37,4 @@ jobs:
             sudo docker rm netcard || true
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/netcard:latest || true
             
-            sudo docker run -d --name netcard -p 8000:8000 --env-file .env ${{ secrets.DOCKER_USERNAME }}/netcard:latest
-
-
+            sudo docker-compose up -d
