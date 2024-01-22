@@ -4,8 +4,8 @@ const crypto = require("crypto");
 
 exports.register = async (req, res) => {
 
-    // 영어, 숫자 최소 1자리
-    const emailRegex = /^[a-zA-Z0-9]+$/;
+    // 영어, 숫자, 특수문자 최소 1자리
+    const emailRegex = /^[a-zA-Z0-9!@#$%^&*()?_~]+$/;
     // 영어, 숫자 최소 1자리
     const passwordRegex = /^[a-zA-Z0-9]+$/;
     // 한글, 영어, 숫자 최소 1자리
