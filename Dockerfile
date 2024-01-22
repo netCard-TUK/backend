@@ -1,17 +1,8 @@
 # Stage 1: Build
-FROM node:12-alpine as builder
-WORKDIR /app
+FROM node:18-alpine
 COPY package*.json ./
-RUN npm install --only=production
-RUN npm prune --production
+RUN npm install
 COPY . .
-
-# Stage 2: Runtime
-FROM node:12-alpine
-WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY /src ./src
-COPY index.js ./index.js
 
 EXPOSE 8000
 CMD ["npm", "start"]
