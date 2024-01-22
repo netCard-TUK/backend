@@ -16,52 +16,62 @@ exports.register = async (req, res) => {
   userId = Number(userId);
   tell = Number(tell);
 
-  //파일 예외 처리 파일 정보가 있을 경우만 인자로 받음
-  let photo = req.files && Object.keys(req.files).length > 0 ? req.files : null;
-  photo =
-    photo != null
-      ? "http://" + req.get("host") + "/" + photo["photo"][0].filename
-      : null;
+  const tokenUserId = req.user.id;
 
-  // req 값이 있는지 검사
-  if (
-    !userId ||
-    !position ||
-    !organization ||
-    !address ||
-    !tell ||
-    !email ||
-    !photo
-  ) {
+  // 숫자 최소 1자리
+  const idRegex = /^[0-9]+$/;
+
+  // userId 값 검증
+  if (!idRegex.test(userId)) {
     return res.send({
       isSuccess: false,
-      message: "항목 중 null 값이 존재합니다.",
+      message: "userId가 잘못되었습니다.",
     });
   }
 
-  // position, organization, address, email 타입(string) 검사
+  userId = Number(userId);
+
+  // files 값 검증
+  if (!req.files || Object.keys(req.files).length === 0 || Object.keys(req.files).length > 1
+      || !req.files.photo || req.files.photo.length > 1
+  ) {
+    return res.send(
+        {
+          isSuccess: false,
+          message: "파일이 없거나 2개 이상입니다."
+        }
+    );
+  }
+
+  // 토큰 유저 아이디와 요청 유저 아이디가 다를 경우
+  if (tokenUserId !== userId) {
+    return res.send({
+      isSuccess: false,
+      message: "인증실패 : 토큰 유저 아이디와 요청 유저 아이디가 다릅니다.",
+    });
+  }
+
+  // String 타입 + 띄어쓰기 검사
+  const stringRegex = /^[a-zA-Z0-9ㄱ-ㅎ가-힣\s]+$/;
+  // email 검사
+  const emailRegex = /^[a-zA-Z0-9!@#$%^&*()?_~]+$/;
+
+  // tell 타입 검사
+  const tellRegex = /^[0-9]+$/;
+
+  // position, organization, address, email 타입 검사
   if (
-    typeof position !== "string" ||
-    typeof organization !== "string" ||
-    typeof address !== "string" ||
-    typeof email !== "string"
+    !(position && organization && address && email) ||
+    !stringRegex.test(position)||
+    !stringRegex.test(organization)||
+    !stringRegex.test(address) ||
+    !tellRegex.test(tell) ||
+    !emailRegex.test(email)
   ) {
     return res.send({
       isSuccess: false,
       message:
-        "position, organization, address, email은 문자열(string)이어야 합니다.",
-    });
-  }
-
-  // jwt 토큰 값 받고 id 값만 분리하기 - db에 user_id에 저장하기 위함
-  const { access_token } = req.headers;
-  //const [tokenType, tokenValue] = authorization.split(" ");
-  const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-
-  if (userId !== id) {
-    return res.send({
-      isSuccess: false,
-      message: "올바른 토큰 값이 아닙니다.",
+        "position, organization, address, email은 문자 이어야 합니다.",
     });
   }
 
@@ -73,9 +83,34 @@ exports.register = async (req, res) => {
     });
   }
 
+  // file upload
+  let uploadPath = __dirname;
+
+  // parse uploadPath
+  uploadPath = uploadPath.split("/");
+
+  // remove 3 last element
+  uploadPath = uploadPath.slice(0, uploadPath.length - 3);
+
+  // join uploadPath
+  uploadPath = uploadPath.join("/") + "/public/" + req.files.photo.md5 + ".png";
+
+  // 파일 URL
+  const photo = req.protocol + '://' + req.get('host') + "/" + req.files.photo.md5 + ".png";
+
+  await req.files.photo.mv(uploadPath, (err) => {
+    if (err) {
+      console.log(err);
+      return res.send({
+        isSuccess: false,
+        message: "파일 업로드 실패",
+      });
+    }
+  });
+
   //db에 저장 정상적으로 저장 시 ok / 실패 시 fail
   const { affectedRows, insertId } = await repository.create(
-    (userId = id),
+    userId,
     position,
     organization,
     address,
@@ -85,7 +120,7 @@ exports.register = async (req, res) => {
   );
 
   if (affectedRows > 0) {
-    return res.send({ isSuccess: true, id: insertId });
+    return res.send({ isSuccess: true, cardId: insertId });
   }
   return res.send({ isSuccess: false, message: "등록 실패" });
 };
