@@ -4,6 +4,7 @@ const router = express.Router();
 const logging = require("./middleware/logging");
 const verify = require("./middleware/jwtVerify");
 const headers = require("./middleware/header");
+const fileUpload = require('express-fileupload');
 
 const multer = require("multer");
 const storage = multer.diskStorage({
@@ -28,6 +29,8 @@ router.use("/", express.static("./public"));
 router.use(headers);
 // logging
 router.use(logging);
+// fileUpload
+router.use(fileUpload());
 
 // 유저 관련 api
 // 회원가입
@@ -40,7 +43,7 @@ router.post("/api/users/delete", verify, userController.delete);
 //명함 관련 api
 router.post(
   "/api/cards/register",
-  upload.fields([{ name: "photo", maxCount: 1 }]),
+  verify,
   cardsController.register
 );
 router.get("/api/cards/search/:cardId", cardsController.inquiry);
