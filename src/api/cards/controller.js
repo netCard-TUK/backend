@@ -5,17 +5,22 @@ const jwt = require("jsonwebtoken");
 //내 명함 정보 등록
 exports.register = async (req, res) => {
   let { userId, position, organization, address, tell, email } = req.body;
+  // 숫자 최소 1자리
+  const numRegex = /^[0-9]+$/;
+  if (!(numRegex.test(userId) && numRegex.test(tell))) {
+    return res.send({
+      isSuccess: false,
+      message: "userId와 tell은 숫자만 입력 가능합니다.",
+    });
+  }
+  userId = Number(userId);
+  tell = Number(tell);
 
   //파일 예외 처리 파일 정보가 있을 경우만 인자로 받음
   let photo = req.files && Object.keys(req.files).length > 0 ? req.files : null;
-  let time = new Date();
   photo =
     photo != null
-      ? "http://" +
-        req.get("host") +
-        "/" +
-        +time.getTime() +
-        photo["photo"][0].filename
+      ? "http://" + req.get("host") + "/" + photo["photo"][0].filename
       : null;
 
   // req 값이 있는지 검사
@@ -31,14 +36,6 @@ exports.register = async (req, res) => {
     return res.send({
       isSuccess: false,
       message: "항목 중 null 값이 존재합니다.",
-    });
-  }
-
-  // userId와 tell 타입(int) 검사
-  if (typeof userId !== "number" || typeof tell !== "number") {
-    return res.send({
-      isSuccess: false,
-      message: "userId와 tell은 정수(int)여야 합니다.",
     });
   }
 
@@ -95,7 +92,17 @@ exports.register = async (req, res) => {
 
 //특정 명함 정보 조회
 exports.inquiry = async (req, res) => {
-  const cardId = Number(req.params.cardId);
+  let cardId = req.params.cardId;
+
+  // 숫자 최소 1자리
+  const numRegex = /^[0-9]+$/;
+  if (!numRegex.test(cardId)) {
+    return res.send({
+      isSuccess: false,
+      message: "cardId는 숫자만 입력 가능합니다.",
+    });
+  }
+  cardId = Number(cardId);
 
   if (cardId == null) {
     return res.send({
@@ -104,12 +111,6 @@ exports.inquiry = async (req, res) => {
     });
   }
 
-  if (typeof cardId !== "number") {
-    return res.send({
-      isSuccess: false,
-      message: "card_id는 정수(int)여야 합니다.",
-    });
-  }
   // 명함 정보 가져오기
   const item = await repository.show(cardId);
   if (item === null) {
@@ -120,10 +121,10 @@ exports.inquiry = async (req, res) => {
   }
   //유저 정보 가져오기
   const user_info = await userRepository.show_user(item.user_id);
-  if (user_info == null) {
+  if (user_info === null) {
     return res.send({
-      isSuccess: false,
-      message: "조회된 유저 정보가 없습니다.",
+      isSuccess: true,
+      result: item,
     });
   }
 
@@ -135,7 +136,7 @@ exports.inquiry = async (req, res) => {
     photo: item.photo,
     tell: item.tell,
     email: item.email,
-    user_name: user_info.name,
+    name: user_info.name,
     phone: user_info.phone,
   };
 
@@ -150,7 +151,7 @@ exports.inquiry_list = async (req, res) => {
   if (typeof name !== "string") {
     return res.send({
       isSuccess: false,
-      message: "userName는 문자열(string)이여야 합니다.",
+      message: "userName은 문자열(string)이여야 합니다.",
     });
   }
 
@@ -158,8 +159,8 @@ exports.inquiry_list = async (req, res) => {
 
   if (Object.keys(item_all).length == 0) {
     return res.send({
-      isSuccess: false,
-      message: "조회된 명함 정보가 없습니다.",
+      isSuccess: true,
+      result: item_all,
     });
   }
 
@@ -173,20 +174,23 @@ exports.inquiry_list = async (req, res) => {
 exports.inquiry_all = async (req, res) => {
   //user_id 값 가져오기
   const { access_token } = req.headers;
-  let userId = Number(req.params.userId);
+  let userId = req.params.userId;
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
+
+  // 숫자 최소 1자리
+  const numRegex = /^[0-9]+$/;
+  if (!numRegex.test(userId)) {
+    return res.send({
+      isSuccess: false,
+      message: "userId는 숫자만 입력 가능합니다.",
+    });
+  }
+  userId = Number(userId);
 
   if (userId !== id) {
     return res.send({
       isSuccess: false,
       message: "올바른 토큰 값이 아닙니다.",
-    });
-  }
-
-  if (typeof userId !== "number") {
-    return res.send({
-      isSuccess: false,
-      message: "userId는 정수(int)여야 합니다.",
     });
   }
 
@@ -215,23 +219,22 @@ exports.inquiry_all = async (req, res) => {
 
 //내 명함 정보 업데이트
 exports.update = async (req, res) => {
-  const cardId = req.params.cardId;
+  let cardId = req.params.cardId;
 
   const { access_token } = req.headers;
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
   let { userId, position, organization, address, tell, email } = req.body;
 
-  //파일 예외 처리 파일 정보가 있을 경우만 인자로 받음
-  let photo = req.files && Object.keys(req.files).length > 0 ? req.files : null;
-  let time = new Date();
-  photo =
-    photo != null
-      ? "http://" +
-        req.get("host") +
-        "/" +
-        +time.getTime() +
-        photo["photo"][0].filename
-      : null;
+  // 숫자 최소 1자리
+  const numRegex = /^[0-9]+$/;
+  if (!(numRegex.test(userId) && numRegex.test(cardId))) {
+    return res.send({
+      isSuccess: false,
+      message: "userId와 cardId는 숫자만 입력 가능합니다.",
+    });
+  }
+  userId = Number(userId);
+  cardId = Number(cardId);
 
   if (userId !== id) {
     return res.send({
@@ -272,17 +275,8 @@ exports.update = async (req, res) => {
     ? (organization = organization)
     : (organization = item.organization);
   address ? (address = address) : (address = item.address);
-  photo ? (photo = photo) : (photo = item.photo);
   tell ? (tell = tell) : (tell = item.tell);
   email ? (email = email) : (email = item.email);
-
-  // userId와 tell 타입(int) 검사
-  if (typeof userId !== "number" || typeof tell !== "number") {
-    return res.send({
-      isSuccess: false,
-      message: "userId와 tell은 정수(int)여야 합니다.",
-    });
-  }
 
   // position, organization, address, email 타입(string) 검사
   if (
@@ -298,12 +292,22 @@ exports.update = async (req, res) => {
     });
   }
 
+  // 숫자 최소 1자리
+  if (!numRegex.test(tell)) {
+    console.log(userId, tell);
+    console.log(typeof userId, typeof tell);
+    return res.send({
+      isSuccess: false,
+      message: "tell은 숫자만 입력 가능합니다.",
+    });
+  }
+  tell = Number(tell);
+
   const { affectedRows } = await repository.update(
     cardId,
     position,
     organization,
     address,
-    photo,
     tell,
     email
   );
@@ -314,41 +318,44 @@ exports.update = async (req, res) => {
   return res.send({ isSuccess: false, message: "저장 실패" });
 };
 
-//내 명함 목록 삭제
-exports.delete = async (req, res) => {
-  const cardId = Number(req.params.cardId);
-  const { access_token } = req.headers;
-  const { id } = jwt.verify(access_token, process.env.JWT_KEY);
-  let { userId } = req.body;
-  userId = Number(userId);
+/**
+ * 내 명함 목록 삭제
+ * 미사용으로 주석 처리
+ */
+// exports.delete = async (req, res) => {
+//   const cardId = Number(req.params.cardId);
+//   const { access_token } = req.headers;
+//   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
+//   let { userId } = req.body;
+//   userId = Number(userId);
 
-  if (userId !== id) {
-    return res.send({
-      isSuccess: false,
-      message: "올바른 토큰 값이 아닙니다.",
-    });
-  }
+//   if (userId !== id) {
+//     return res.send({
+//       isSuccess: false,
+//       message: "올바른 토큰 값이 아닙니다.",
+//     });
+//   }
 
-  if (typeof userId !== "number" || typeof cardId !== "number") {
-    return res.send({
-      isSuccess: false,
-      message: "userId와 cardId는 정수(int)여야 합니다.",
-    });
-  }
+//   if (typeof userId !== "number" || typeof cardId !== "number") {
+//     return res.send({
+//       isSuccess: false,
+//       message: "userId와 cardId는 정수(int)여야 합니다.",
+//     });
+//   }
 
-  const user_info = await userRepository.show_user(userId);
-  if (user_info == null) {
-    return res.send({
-      isSuccess: false,
-      message: "조회된 유저 정보가 없습니다.",
-    });
-  }
+//   const user_info = await userRepository.show_user(userId);
+//   if (user_info == null) {
+//     return res.send({
+//       isSuccess: false,
+//       message: "조회된 유저 정보가 없습니다.",
+//     });
+//   }
 
-  const { affectedRows } = await repository.delete(cardId);
+//   const { affectedRows } = await repository.delete(cardId);
 
-  if (affectedRows > 0) {
-    res.send({ isSuccess: true });
-  } else {
-    res.send({ isSuccess: false, message: "삭제 실패" });
-  }
-};
+//   if (affectedRows > 0) {
+//     res.send({ isSuccess: true });
+//   } else {
+//     res.send({ isSuccess: false, message: "삭제 실패" });
+//   }
+// };

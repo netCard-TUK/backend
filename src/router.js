@@ -46,12 +46,8 @@ router.post(
 router.get("/api/cards/search/:cardId", cardsController.inquiry);
 router.get("/api/cards/search/list/:name", cardsController.inquiry_list);
 router.get("/api/cards/search/all/:userId", cardsController.inquiry_all);
-router.post(
-  "/api/cards/update/:cardId",
-  upload.fields([{ name: "photo", maxCount: 1 }]),
-  cardsController.update
-);
-router.post("/api/cards/delete/:cardId", cardsController.delete);
+router.post("/api/cards/update/:cardId", cardsController.update);
+// router.post("/api/cards/delete/:cardId", cardsController.delete);
 module.exports = router;
 
 // 명함 지갑 관련 API
