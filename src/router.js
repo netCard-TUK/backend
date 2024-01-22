@@ -44,7 +44,8 @@ router.post(
   cardsController.register
 );
 router.get("/api/cards/search/:cardId", cardsController.inquiry);
-router.get("/api/cards/all/search/:userId", cardsController.inquiry_all);
+router.get("/api/cards/search/list/:name", cardsController.inquiry_list);
+router.get("/api/cards/search/all/:userId", cardsController.inquiry_all);
 router.post(
   "/api/cards/update/:cardId",
   upload.fields([{ name: "photo", maxCount: 1 }]),

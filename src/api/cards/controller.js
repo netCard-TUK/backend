@@ -142,11 +142,38 @@ exports.inquiry = async (req, res) => {
   return res.send(response);
 };
 
+//특정 명함 정보 리스트 반환
+exports.inquiry_list = async (req, res) => {
+  //user_name 값 가져오기
+  const name = req.params.name;
+
+  if (typeof name !== "string") {
+    return res.send({
+      isSuccess: false,
+      message: "userName는 문자열(string)이여야 합니다.",
+    });
+  }
+
+  const item_all = await repository.show_all_as_name(name);
+
+  if (Object.keys(item_all).length == 0) {
+    return res.send({
+      isSuccess: false,
+      message: "조회된 명함 정보가 없습니다.",
+    });
+  }
+
+  res.send({
+    isSuccess: true,
+    result: item_all,
+  });
+};
+
 //내 명함 정보 전체 조회
 exports.inquiry_all = async (req, res) => {
   //user_id 값 가져오기
   const { access_token } = req.headers;
-  const userId = Number(req.params.userId);
+  let userId = Number(req.params.userId);
   const { id } = jwt.verify(access_token, process.env.JWT_KEY);
 
   if (userId !== id) {
@@ -172,6 +199,13 @@ exports.inquiry_all = async (req, res) => {
   }
 
   const item_all = await repository.show_all(id);
+
+  if (Object.keys(item_all).length == 0) {
+    return res.send({
+      isSuccess: false,
+      message: "조회된 명함 정보가 없습니다.",
+    });
+  }
 
   res.send({
     isSuccess: true,
