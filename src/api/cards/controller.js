@@ -34,8 +34,6 @@ exports.register = async (req, res) => {
     });
   }
 
-  userId = 23;
-  tell = Number(tell);
   // userId와 tell 타입(int) 검사
   if (typeof userId !== "number" || typeof tell !== "number") {
     return res.send({
