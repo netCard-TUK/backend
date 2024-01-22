@@ -24,11 +24,10 @@ exports.create = async (
 
 //내 명함 조회 쿼리
 exports.show = async (card_id) => {
-  console.log(card_id);
-  const query = `SELECT * FROM cards WHERE card_id=?`;
+  const query = `SELECT * FROM cards JOIN user ON cards.user_id = user.id WHERE card_id=?`;
   let result = await pool(query, card_id);
 
-  return result.length < 0 ? null : result[0];
+  return result.length == 0 ? null : result[0];
 };
 
 //내 명함 전체 조회
@@ -42,7 +41,7 @@ exports.show_all = async (id) => {
 //특정 명함 전체 조회(이름 일치)
 exports.show_all_as_name = async (name) => {
   const query = `
-    SELECT cards.*, user.phone, user.name FROM cards JOIN user ON cards.user_id = user.id WHERE name=?`;
+    SELECT cards.*, user.phone, user.name FROM cards JOIN user ON cards.user_id = user.id WHERE user.name LIKE '%${name}%'`;
   const result = await pool(query, [name]);
   return result.length < 0 ? null : result;
 };
@@ -55,30 +54,14 @@ exports.show_all_as_name = async (name) => {
 // };
 
 //내 명함 업데이트 쿼리
-exports.update = async (
-  id,
-  position,
-  organization,
-  address,
-  photo,
-  tell,
-  email
-) => {
+exports.update = async (id, position, organization, address, tell, email) => {
   const query = `
     UPDATE cards 
-    SET position=?, organization=?, address=?, photo=?, tell=?, email=?
+    SET position=?, organization=?, address=?, tell=?, email=?
     WHERE card_id = ?;
   `;
 
-  return await pool(query, [
-    position,
-    organization,
-    address,
-    photo,
-    tell,
-    email,
-    id,
-  ]);
+  return await pool(query, [position, organization, address, tell, email, id]);
 };
 
 //내 명함 삭제 쿼리
