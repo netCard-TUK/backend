@@ -166,7 +166,7 @@ exports.inquiry = async (req, res) => {
     const response = {
         isSuccess: true,
         result: {
-            cardId : item.card_id,
+            card_id : item.card_id,
             position: item.position,
             organization: item.organization,
             address: item.address,
