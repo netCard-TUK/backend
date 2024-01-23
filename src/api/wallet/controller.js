@@ -46,7 +46,7 @@ exports.toggle = async (req, res) => {
     }
 
     // 명함 아이디로 명함 찾기
-    const card = await cardRepository.show_other(cardId);
+    const card = await cardRepository.show(cardId);
     if (!card) {
         return res.send({
             isSuccess: false,
