@@ -15,6 +15,13 @@ exports.register = async (req, res) => {
 
     const {email, password, name, phone} = req.body;
 
+    if (!email || !password || !name || !phone) {
+        return res.send({
+            isSuccess: false,
+            message: "email, password, name, phone가 누락되었습니다.",
+        });
+    }
+
     if (
         emailRegex.test(email) === false ||
         passwordRegex.test(password) === false ||
@@ -56,7 +63,7 @@ exports.register = async (req, res) => {
 
     res.send({
         isSuccess: true,
-        userId : insertId,
+        userId: insertId,
         access_token: data,
     });
 };
@@ -68,6 +75,13 @@ exports.login = async (req, res) => {
     const emailRegex = /^[a-zA-Z0-9]+$/;
     // 영어, 숫자 최소 1자리
     const passwordRegex = /^[a-zA-Z0-9]+$/;
+
+    if (!email || !password) {
+        return res.send({
+            isSuccess: false,
+            message: "email, password가 누락되었습니다.",
+        });
+    }
 
     if (
         emailRegex.test(email) === false ||
@@ -90,7 +104,7 @@ exports.login = async (req, res) => {
 
     const user = await userRepository.login(email, result.toString("base64"));
 
-    if (!user){
+    if (!user) {
         return res.send({
             isSuccess: false,
             message: "일치하는 회원이 없습니다.",
@@ -101,12 +115,13 @@ exports.login = async (req, res) => {
 
     res.send({
         isSuccess: true,
-        userId : user.id,
+        userId: user.id,
         access_token: token,
     });
 }
 
 exports.delete = async (req, res) => {
+
     let {userId} = req.body
     const tokenUserId = req.user.id;
 
@@ -114,7 +129,7 @@ exports.delete = async (req, res) => {
     // 숫자 최소 1자리
     const regExp = /^[0-9]+$/;
 
-    if (!regExp.test(userId)) {
+    if (!userId || !regExp.test(userId)) {
         return res.send({
             isSuccess: false,
             message: "userId가 잘못되었습니다.",
@@ -143,9 +158,8 @@ exports.delete = async (req, res) => {
     let {affectedRows} = await userRepository.delete(userId);
 
     if (affectedRows > 0) {
-        res.send({ isSuccess: true });
-    }
-    else {
-        res.send({ isSuccess: false, message: "삭제 실패" });
+        res.send({isSuccess: true});
+    } else {
+        res.send({isSuccess: false, message: "삭제 실패"});
     }
 }

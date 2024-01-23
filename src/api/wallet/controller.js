@@ -13,7 +13,10 @@ exports.toggle = async (req, res) => {
     let isIntCardId = regExp.test(cardId);
 
     // userId가 숫자형이 아닐 경우
-    if (!isIntUserId || !isIntCardId) {
+    if (
+        !userId || !cardId ||
+        !isIntUserId || !isIntCardId
+    ) {
         return res.send({
             isSuccess: false,
             message: "userId, cardId는 숫자형으로 입력해주세요",
@@ -56,22 +59,19 @@ exports.toggle = async (req, res) => {
     if (wallet) {
         // 만약 명함 지갑에 있다면 명함지갑에서 삭제
         const {affectedRows} = await walletRepository.delete(userId, cardId);
-        return  res.send({
+        return res.send({
             isSuccess: true,
             message: "삭제",
         })
-    }
-    else {
+    } else {
         // 없다면 명함 지갑에 추가
         const {affectedRows} = await walletRepository.register(userId, cardId);
-        return  res.send({
+        return res.send({
             isSuccess: true,
             message: "등록",
         })
     }
 };
-
-
 
 exports.findAllByUserId = async (req, res) => {
     let userId = req.params.userId;
@@ -82,7 +82,10 @@ exports.findAllByUserId = async (req, res) => {
     const regExp = /^[0-9]+$/;
 
     // page, size가 숫자형이 아닐 경우
-    if (!regExp.test(page) || !regExp.test(size)) {
+    if (
+        !page || !size ||
+        !regExp.test(page) || !regExp.test(size)
+    ) {
         return res.send({
             isSuccess: false,
             message: "page, size는 숫자형으로 입력해주세요",
