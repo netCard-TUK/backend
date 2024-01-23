@@ -38,6 +38,14 @@ exports.show_all = async (id) => {
   return result.length < 0 ? null : result;
 };
 
+// 모든 명함 최신순 페이징 조회
+exports.findAll = async (page, size) => {
+  const query = `
+    SELECT cards.* FROM cards ORDER BY created_at desc LIMIT ? OFFSET ?`;
+  const result = await pool(query, [size, page * size]);
+  return result.length < 0 ? null : result;
+};
+
 //특정 명함 전체 조회(이름 일치)
 exports.show_all_as_name = async (name) => {
   const query = `

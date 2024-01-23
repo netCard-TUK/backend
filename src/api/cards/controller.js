@@ -177,6 +177,47 @@ exports.inquiry = async (req, res) => {
 
   return res.send(response);
 };
+// 모든 명함 페이징 조회
+exports.findAll = async (req, res) => {
+    let page = req.query.page;
+    let size = req.query.size;
+
+    // 숫자 정규식
+    const regExp = /^[0-9]+$/;
+
+    // page, size가 숫자형이 아닐 경우
+    if (
+        !page ||
+        !size ||
+        !regExp.test(page) ||
+        !regExp.test(size)
+    ) {
+        return res.send({
+        isSuccess: false,
+        message: "page, size는 숫자형으로 입력해주세요",
+        });
+    }
+
+    page = Number(page);
+    size = Number(size);
+
+    // page 또는 size가 0 이하일 경우
+    if (page < 0 || size < 0) {
+        return res.send({
+        isSuccess: false,
+        message: "page 또는 size는 0 이하로 입력할 수 없습니다.",
+        });
+    }
+
+    const findList = await repository.findAll(page, size);
+
+    console.log(findList);
+
+    return res.send({
+      isSuccess: true,
+      result: findList,
+    });
+}
 
 //특정 명함 정보 리스트 반환
 exports.inquiry_list = async (req, res) => {

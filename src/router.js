@@ -46,6 +46,9 @@ router.post(
   verify,
   cardsController.register
 );
+// 명함 전체 페이징 조회
+router.get("/api/cards", cardsController.findAll);
+
 router.get("/api/cards/search/:cardId", cardsController.inquiry);
 router.get("/api/cards/search/list/:name", cardsController.inquiry_list);
 router.get("/api/cards/search/all/:userId", cardsController.inquiry_all);
