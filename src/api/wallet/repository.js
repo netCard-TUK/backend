@@ -23,7 +23,7 @@ exports.findByUserIdCardId = async (userId, cardId) => {
 // 유저 아이디로 명함 지갑에 있는 명함들 모두 조회
 exports.findAllByUserId = async (userId, page, size) => {
     const query = `
-        SELECT cards.card_id as cardId, user.name as name, cards.position as position, cards.organization as organization, cards.address as address, cards.photo as photo, cards.tell as tell, cards.email as email, wallets.updated_at as updatedAt
+        SELECT cards.card_id , user.name as name, cards.position as position, cards.organization as organization, cards.address as address, cards.photo as photo, cards.tell as tell, cards.email as email, wallets.updated_at as updatedAt
         FROM wallets JOIN cards JOIN user on wallets.card_id = cards.card_id and wallets.user_id = user.id 
         where wallets.user_id = ?
         limit ? offset ?
