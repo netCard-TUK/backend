@@ -41,7 +41,7 @@ exports.show_all = async (id) => {
 // 모든 명함 최신순 페이징 조회
 exports.findAll = async (page, size) => {
   const query = `
-    SELECT cards.* FROM cards ORDER BY created_at desc LIMIT ? OFFSET ?`;
+    SELECT cards.*, user_id, name FROM cards JOIN user ON cards.user_id = user.id ORDER BY created_at desc LIMIT ? OFFSET ?`;
   const result = await pool(query, [size, page * size]);
   return result.length < 0 ? null : result;
 };
